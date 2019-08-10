@@ -10,6 +10,7 @@ import org.slf4j.LoggerFactory;
 import ph.caleon.transfer.exeception.ServiceException;
 import ph.caleon.transfer.handler.data.ResponseCode;
 import ph.caleon.transfer.service.data.TransactionInfo;
+import ph.caleon.transfer.service.data.UpdatedBalance;
 
 import java.util.Optional;
 
@@ -24,7 +25,8 @@ public class TransferServiceImpl implements TransferService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(TransferServiceImpl.class);
 
-    private static final String TXN_VALIDATE_QUERY = "SELECT (balance - :amount) AS updated_balance FROM accounts WHERE account_id = :accountId FOR UPDATE";
+    private static final String CHECK_SRC_BALANCE_QUERY = "SELECT (balance - :amount) AS updated_balance FROM accounts WHERE account_id = :accountId FOR UPDATE";
+    private static final String TGT_UPDATED_BALANCE_QUERY = "SELECT (balance + :amount) AS updated_balance FROM accounts WHERE account_id = :accountId FOR UPDATE";
     private static final String SOURCE_UPDATE_BALANCE_QUERY = "UPDATE accounts set balance = (balance - :amount) WHERE account_id = :accountId";
     private static final String TARGET_UPDATE_BALANCE_QUERY = "UPDATE accounts set balance = (balance + :amount) WHERE account_id = :accountId";
     private static final String INSERT_EVENTS_QUERY = "INSERT INTO money_movement(transaction_id, account_id, amount, currency, is_credit) " +
@@ -48,19 +50,20 @@ public class TransferServiceImpl implements TransferService {
     }
 
     @Override
-    public void transfer(TransactionInfo info) {
-        jdbi.useTransaction(handle -> startTransaction(handle, info));
+    public UpdatedBalance transfer(TransactionInfo info) {
+        return jdbi.inTransaction(handle -> startTransaction(handle, info));
     }
 
-    private void startTransaction(final Handle handle, final TransactionInfo info) {
+    private UpdatedBalance startTransaction(final Handle handle, final TransactionInfo info) {
         LOGGER.info("Beginning transaction...");
         try {
             final Handle transaction = handle.begin();
-            validateTransaction(transaction, info);
+            final UpdatedBalance balance = validateTransaction(transaction, info);
             updateBalances(transaction, info);
             insertEventsEntries(transaction, info);
             insertTransactionState(transaction, info);
             transaction.commit();
+            return balance;
         } catch (ServiceException e) {
           throw  e;
         } catch (Exception ex) {
@@ -68,15 +71,20 @@ public class TransferServiceImpl implements TransferService {
         }
     }
 
-    private void validateTransaction(final Handle transaction, final TransactionInfo info) {
+    private UpdatedBalance validateTransaction(final Handle transaction, final TransactionInfo info) {
         LOGGER.info("Validating transaction...");
-        try (final Query query = transaction.select(TXN_VALIDATE_QUERY)){
-            final Optional<Double> result = query.bind(AMOUNT_FIELD, info.getSourceAmount())
+        try (final Query srcQuery = transaction.select(CHECK_SRC_BALANCE_QUERY);
+             final Query tgtQuery = transaction.select(TGT_UPDATED_BALANCE_QUERY)){
+            final Optional<Double> srcResult = srcQuery.bind(AMOUNT_FIELD, info.getSourceAmount())
                     .bind(ACCOUNT_ID_FIELD, info.getSourceAcctId())
                     .mapTo(Double.class).findOne();
-            if (result.isPresent() && Double.compare(result.get(), 0) < 0) {
-                throw new ServiceException(INSUFFICIENT_BALANCE);
-            }
+
+            final Optional<Double> tgtResult = tgtQuery.bind(AMOUNT_FIELD, info.getTargetAmount())
+                    .bind(ACCOUNT_ID_FIELD, info.getTargetAcctId())
+                    .mapTo(Double.class).findOne();
+
+            return getUpdatedBalance(srcResult, tgtResult);
+
         } catch (ServiceException e) {
             insertErrorTransactionState(info, e.getResponseCode());
             throw e;
@@ -84,6 +92,17 @@ public class TransferServiceImpl implements TransferService {
             insertErrorTransactionState(info, TRANSFER_ERROR);
             throw new ServiceException("Error occurred while validating the accounts.", e, TRANSFER_ERROR);
         }
+    }
+
+    private UpdatedBalance getUpdatedBalance(Optional<Double> srcResult, Optional<Double> tgtResult) {
+        final UpdatedBalance balance = new UpdatedBalance();
+        if (srcResult.isPresent() && tgtResult.isPresent()) {
+            balance.setSourceUpdatedBalance(srcResult.get());
+            balance.setTargetUpdatedBalance(tgtResult.get());
+        } else {
+            throw new ServiceException(INVALID_ACCOUNT);
+        }
+        return balance;
     }
 
     private void updateBalances(final Handle transaction, final TransactionInfo info) {

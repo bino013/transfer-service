@@ -16,10 +16,12 @@ import static junit.framework.TestCase.assertEquals;
  **/
 public class BaseTest {
 
-    private static final String CONNECTION_STR = "jdbc:h2:~/test;SCHEMA=TRANSFER_APP_TEST";
+    private static final String CONNECTION_STR = "jdbc:hsqldb:mem:test";
     protected static final long SOURCE_ACCT_ID = 2100001;
     protected static final long TARGET_ACCT_ID = 2100002;
     protected static final long INSUFFICIENT_ACCT_ID = 2100003;
+    protected static final long INVALID_SRC_ACCT_ID = 100001;
+    protected static final long INVALID_TGT_ACCT_ID = 100002;
     protected static final double TXN_AMOUNT = 10;
     protected static final String CURRENCY = "PHP";
     protected static final int INITIAL_BALANCE = 100;

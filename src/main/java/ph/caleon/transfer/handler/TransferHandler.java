@@ -11,6 +11,7 @@ import ph.caleon.transfer.handler.data.TransferRequest;
 import ph.caleon.transfer.handler.data.TransferResponse;
 import ph.caleon.transfer.service.TransferService;
 import ph.caleon.transfer.service.data.TransactionInfo;
+import ph.caleon.transfer.service.data.UpdatedBalance;
 import ph.caleon.transfer.util.JSONUtil;
 
 import java.io.IOException;
@@ -45,8 +46,8 @@ public class TransferHandler implements HttpHandler {
         String response = null;
         try {
             TransferRequest transferRequest = validateRequest(request);
-            service.transfer(new TransactionInfo(transferRequest, transactionId));
-            response = JSONUtil.toString(new TransferResponse(SUCCESSFUL, transactionId));
+            final UpdatedBalance updatedBalance = service.transfer(new TransactionInfo(transferRequest, transactionId));
+            response = JSONUtil.toString(new TransferResponse(SUCCESSFUL, transactionId, updatedBalance));
         } catch (TransferException e) {
             response = JSONUtil.toString(new TransferResponse(e.getResponseCode().getCode(), e.getMessage(), transactionId));
             LOGGER.error("Error occurred while processing transfer request", e);

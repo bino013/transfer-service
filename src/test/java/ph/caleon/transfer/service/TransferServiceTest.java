@@ -9,6 +9,7 @@ import ph.caleon.transfer.exeception.ServiceException;
 import ph.caleon.transfer.exeception.TransferException;
 import ph.caleon.transfer.handler.data.TransferRequest;
 import ph.caleon.transfer.service.data.TransactionInfo;
+import ph.caleon.transfer.service.data.UpdatedBalance;
 
 import java.sql.SQLException;
 
@@ -36,7 +37,9 @@ public class TransferServiceTest extends BaseTest {
     public void testTransfer() throws SQLException {
         TransferRequest request = new TransferRequest(SOURCE_ACCT_ID, TARGET_ACCT_ID, TXN_AMOUNT, CURRENCY);
         final TransactionInfo info = new TransactionInfo(request);
-        transferService.transfer(info);
+        final UpdatedBalance updatedBalance = transferService.transfer(info);
+        assertEquals(INITIAL_BALANCE - TXN_AMOUNT, updatedBalance.getSourceUpdatedBalance());
+        assertEquals(INITIAL_BALANCE + TXN_AMOUNT, updatedBalance.getTargetUpdatedBalance());
         assertAcctTable(INITIAL_BALANCE - TXN_AMOUNT, SOURCE_ACCT_ID);
         assertAcctTable(INITIAL_BALANCE + TXN_AMOUNT, TARGET_ACCT_ID);
         assertTransactionStateTable(info, SUCCESSFUL.getCode(), POSTED.name());
@@ -106,6 +109,51 @@ public class TransferServiceTest extends BaseTest {
             assertEquals(TRANSFER_ERROR, e.getResponseCode());
             assertAcctTable(INITIAL_BALANCE, SOURCE_ACCT_ID);
             assertAcctTable(INITIAL_BALANCE, TARGET_ACCT_ID);
+            assertMoneyMovementTable(0);
+        }
+    }
+
+    @Test
+    public void testTransfer_invalidSourceAcct() throws SQLException {
+        TransferRequest request = new TransferRequest(INVALID_SRC_ACCT_ID, TARGET_ACCT_ID, TXN_AMOUNT, CURRENCY);
+        final TransactionInfo info = new TransactionInfo(request);
+        try{
+            transferService.transfer(info);
+            fail("Test should not reach here");
+        } catch (ServiceException e) {
+            System.out.println("Message: " + e.getMessage());
+            assertEquals(INVALID_ACCOUNT, e.getResponseCode());
+            assertTransactionStateTable(info, INVALID_ACCOUNT.getCode(), DECLINE.name());
+            assertMoneyMovementTable(0);
+        }
+    }
+
+    @Test
+    public void testTransfer_invalidTargetAcct() throws SQLException {
+        TransferRequest request = new TransferRequest(SOURCE_ACCT_ID, INVALID_TGT_ACCT_ID, TXN_AMOUNT, CURRENCY);
+        final TransactionInfo info = new TransactionInfo(request);
+        try{
+            transferService.transfer(info);
+            fail("Test should not reach here");
+        } catch (ServiceException e) {
+            System.out.println("Message: " + e.getMessage());
+            assertEquals(INVALID_ACCOUNT, e.getResponseCode());
+            assertTransactionStateTable(info, INVALID_ACCOUNT.getCode(), DECLINE.name());
+            assertMoneyMovementTable(0);
+        }
+    }
+
+    @Test
+    public void testTransfer_invalidSourceAndTargetAcct() throws SQLException {
+        TransferRequest request = new TransferRequest(INVALID_SRC_ACCT_ID, INVALID_TGT_ACCT_ID, TXN_AMOUNT, CURRENCY);
+        final TransactionInfo info = new TransactionInfo(request);
+        try{
+            transferService.transfer(info);
+            fail("Test should not reach here");
+        } catch (ServiceException e) {
+            System.out.println("Message: " + e.getMessage());
+            assertEquals(INVALID_ACCOUNT, e.getResponseCode());
+            assertTransactionStateTable(info, INVALID_ACCOUNT.getCode(), DECLINE.name());
             assertMoneyMovementTable(0);
         }
     }

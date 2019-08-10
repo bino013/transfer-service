@@ -12,7 +12,8 @@ public enum  ResponseCode {
     GENERIC_ERROR("9600", "Generic Error"),
     REQUEST_VALIDATION_ERROR("9601", "Invalid request body"),
     TRANSFER_ERROR("9602", "Transfer error"),
-    INSUFFICIENT_BALANCE("5100", "Insufficient balance");
+    INSUFFICIENT_BALANCE("5100", "Insufficient balance"),
+    INVALID_ACCOUNT("0500", "Invalid account");
 
     private final String code;
 
