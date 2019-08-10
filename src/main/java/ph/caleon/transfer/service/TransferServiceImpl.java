@@ -1,8 +1,5 @@
 package ph.caleon.transfer.service;
 
-import ph.caleon.transfer.handler.data.ResponseCode;
-import ph.caleon.transfer.service.data.TransactionInfo;
-import ph.caleon.transfer.service.exception.ServiceException;
 import org.jdbi.v3.core.Handle;
 import org.jdbi.v3.core.Jdbi;
 import org.jdbi.v3.core.statement.PreparedBatch;
@@ -10,6 +7,9 @@ import org.jdbi.v3.core.statement.Query;
 import org.jdbi.v3.core.statement.Update;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import ph.caleon.transfer.exeception.ServiceException;
+import ph.caleon.transfer.handler.data.ResponseCode;
+import ph.caleon.transfer.service.data.TransactionInfo;
 
 import java.util.Optional;
 
@@ -27,10 +27,10 @@ public class TransferServiceImpl implements TransferService {
     private static final String TXN_VALIDATE_QUERY = "SELECT (balance - :amount) AS updated_balance FROM accounts WHERE account_id = :accountId FOR UPDATE";
     private static final String SOURCE_UPDATE_BALANCE_QUERY = "UPDATE accounts set balance = (balance - :amount) WHERE account_id = :accountId";
     private static final String TARGET_UPDATE_BALANCE_QUERY = "UPDATE accounts set balance = (balance + :amount) WHERE account_id = :accountId";
-    private static final String INSERT_EVENTS_QUERY = "INSERT INTO money_movement(transaction_id, account_id, amount, is_credit) " +
-            "VALUES (:transactionId, :accountId, :amount, :isCredit)";
-    private static final String INSERT_TXN_STATE_QUERY = "INSERT INTO transaction_state(transaction_id, initiator_account_id, transaction_amount, response_code, state) " +
-            "VALUES(:transactionId, :initiatorAccountId, :amount, :responseCode, :state)";
+    private static final String INSERT_EVENTS_QUERY = "INSERT INTO money_movement(transaction_id, account_id, amount, currency, is_credit) " +
+            "VALUES (:transactionId, :accountId, :amount, :currency, :isCredit)";
+    private static final String INSERT_TXN_STATE_QUERY = "INSERT INTO transaction_state(transaction_id, initiator_account_id, transaction_amount, currency, response_code, state) " +
+            "VALUES(:transactionId, :initiatorAccountId, :amount, :currency, :responseCode, :state)";
 
     private static final String AMOUNT_FIELD = "amount";
     private static final String ACCOUNT_ID_FIELD = "accountId";
@@ -39,6 +39,7 @@ public class TransferServiceImpl implements TransferService {
     private static final String INITIATOR_ACCT_ID_FIELD = "initiatorAccountId";
     private static final String STATE_FIELD = "state";
     private static final String RESPONSE_CODE_FIELD = "responseCode";
+    private static final String CURRENCY = "currency";
 
     private final Jdbi jdbi;
 
@@ -108,11 +109,13 @@ public class TransferServiceImpl implements TransferService {
             batch.bind(TRANSACTION_ID_FIELD, info.getTransactionId())
                     .bind(ACCOUNT_ID_FIELD, info.getSourceAcctId())
                     .bind(AMOUNT_FIELD, info.getSourceAmount())
+                    .bind(CURRENCY, info.getCurrency())
                     .bind(IS_CREDIT_FIELD, info.getSourceIsCredit()).add();
 
             batch.bind(TRANSACTION_ID_FIELD, info.getTransactionId())
                     .bind(ACCOUNT_ID_FIELD, info.getTargetAcctId())
                     .bind(AMOUNT_FIELD, info.getTargetAmount())
+                    .bind(CURRENCY, info.getCurrency())
                     .bind(IS_CREDIT_FIELD, info.getTargetIsCredit()).add();
 
             batch.execute();
@@ -128,7 +131,7 @@ public class TransferServiceImpl implements TransferService {
             insertTxnState.bind(TRANSACTION_ID_FIELD, info.getTransactionId())
                     .bind(INITIATOR_ACCT_ID_FIELD, info.getSourceAcctId())
                     .bind(AMOUNT_FIELD, info.getSourceAmount())
-                    .bind(IS_CREDIT_FIELD, info.getSourceIsCredit())
+                    .bind(CURRENCY, info.getCurrency())
                     .bind(RESPONSE_CODE_FIELD, SUCCESSFUL.getCode())
                     .bind(STATE_FIELD, POSTED.name()).execute();
         } catch (Exception e) {
@@ -144,6 +147,7 @@ public class TransferServiceImpl implements TransferService {
             insertTxnState.bind(TRANSACTION_ID_FIELD, info.getTransactionId())
                     .bind(INITIATOR_ACCT_ID_FIELD, info.getSourceAcctId())
                     .bind(AMOUNT_FIELD, info.getSourceAmount())
+                    .bind(CURRENCY, info.getCurrency())
                     .bind(RESPONSE_CODE_FIELD, code.getCode())
                     .bind(STATE_FIELD, DECLINE.name()).execute();
         } catch (Exception e) {

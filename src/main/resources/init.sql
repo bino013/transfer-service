@@ -1,7 +1,3 @@
-CREATE SCHEMA IF NOT EXISTS transfer_app;
-
-SET SCHEMA transfer_app;
-
 DROP TABLE IF EXISTS accounts;
 DROP TABLE IF EXISTS money_movement;
 DROP TABLE IF EXISTS transaction_state;
@@ -18,6 +14,7 @@ CREATE TABLE IF NOT EXISTS money_movement (
     account_id bigint NOT NULL,
     amount double NOT NULL,
     is_credit boolean NOT NULL,
+    currency varchar(3) NOT NULL,
     CONSTRAINT events_pkey PRIMARY KEY (events_id)
 );
 
@@ -25,6 +22,7 @@ CREATE TABLE IF NOT EXISTS transaction_state (
     transaction_state_id identity NOT NULL,
     transaction_id varchar(36) NOT NULL,
     initiator_account_id bigint NOT NULL,
+    currency varchar(3) NOT NULL,
     transaction_amount double NOT NULL,
     response_code varchar(4) NOT NULL,
     state varchar(10) NOT NULL

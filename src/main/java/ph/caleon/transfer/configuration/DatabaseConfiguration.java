@@ -22,7 +22,7 @@ public final class DatabaseConfiguration {
     private final Jdbi jdbi;
 
     public DatabaseConfiguration(ApplicationProperties properties) {
-        jdbi = Jdbi.create(properties.getStringOrDefault("database.url", "jdbc:h2:~/test;SCHEMA=TRANSFER_APP"));
+        jdbi = Jdbi.create(properties.getStringOrDefault("database.url", "jdbc:h2:~/test;INIT=CREATE SCHEMA IF NOT EXISTS transfer_app\\;SET SCHEMA=TRANSFER_APP"));
         executeInitFile(properties);
     }
 

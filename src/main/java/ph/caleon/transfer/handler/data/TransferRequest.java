@@ -1,21 +1,23 @@
 package ph.caleon.transfer.handler.data;
 
-import lombok.Value;
-
-import java.math.BigDecimal;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 /**
  * @author arvin.caleon on 2019-08-03
  **/
-@Value
+@Getter
+@NoArgsConstructor
+@AllArgsConstructor
 public class TransferRequest {
 
-    private final long sourceAcctId;
+    private Long sourceAcctId;
 
-    private final long targetAcctId;
+    private Long targetAcctId;
 
-    private final double amount;
+    private Double amount;
 
-    private final String currency;
+    private String currency;
 
 }

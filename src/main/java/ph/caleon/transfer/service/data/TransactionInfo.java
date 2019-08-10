@@ -20,11 +20,15 @@ public class TransactionInfo {
     @Getter
     private final String transactionId;
 
-    public TransactionInfo(TransferRequest request) {
+    public TransactionInfo(final TransferRequest request) {
+        this(request, UUID.randomUUID().toString());
+    }
+
+    public TransactionInfo(final TransferRequest request, final String transactionId) {
         source = new Participant(request.getSourceAcctId(), request.getAmount(), false);
         target = new Participant(request.getTargetAcctId(), request.getAmount(), true);
         currency = request.getCurrency();
-        transactionId = UUID.randomUUID().toString();
+        this.transactionId = transactionId;
     }
 
     public long getSourceAcctId() {

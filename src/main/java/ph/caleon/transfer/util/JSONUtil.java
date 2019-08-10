@@ -33,4 +33,8 @@ public final class JSONUtil {
             throw new RuntimeException("Failed to convert to object " + clazz.getName(), e);
         }
     }
+
+    public static ObjectMapper getMapper() {
+        return mapper;
+    }
 }

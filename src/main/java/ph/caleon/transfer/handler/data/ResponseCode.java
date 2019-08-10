@@ -9,9 +9,10 @@ import lombok.Getter;
 public enum  ResponseCode {
 
     SUCCESSFUL("0000", "Successful"),
+    GENERIC_ERROR("9600", "Generic Error"),
     REQUEST_VALIDATION_ERROR("9601", "Invalid request body"),
     TRANSFER_ERROR("9602", "Transfer error"),
-    INSUFFICIENT_BALANCE("5100", "Transfer error");
+    INSUFFICIENT_BALANCE("5100", "Insufficient balance");
 
     private final String code;
 

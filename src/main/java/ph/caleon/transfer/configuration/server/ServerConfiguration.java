@@ -15,6 +15,7 @@ public final class ServerConfiguration {
     private final Undertow server;
 
     public ServerConfiguration(ServerProperties properties, HttpHandler handler) {
+        LOGGER.info("Server host: {}, port: {}", properties.getHost(), properties.getPort());
         Undertow.Builder builder = Undertow.builder()
                 .addHttpListener(properties.getPort(), properties.getHost())
                 .setHandler(handler);
