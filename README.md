@@ -99,7 +99,7 @@
         currency varchar(3) NOT NULL,
         is_credit boolean NOT NULL,
         ```
-        * This the double entry ledger representation. This tracks the money movement (credit or debit) of each account.
+        * This is the double entry ledger representation. This tracks the money movement (credit or debit) of each account.
         * `account_id` - affected account_id
         * `amount` - amount to be credited or debited in the account
         * `currency` - currency of the amount
