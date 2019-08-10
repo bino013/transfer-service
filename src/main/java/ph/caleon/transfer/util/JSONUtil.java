@@ -1,4 +1,4 @@
-package caleon.revolut.transfer.util;
+package ph.caleon.transfer.util;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.PropertyNamingStrategy;

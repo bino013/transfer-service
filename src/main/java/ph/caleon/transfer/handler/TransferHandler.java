@@ -1,12 +1,10 @@
-package caleon.revolut.transfer.handler;
+package ph.caleon.transfer.handler;
 
-import caleon.revolut.transfer.data.TransferRequest;
-import caleon.revolut.transfer.data.TransferResponse;
-import caleon.revolut.transfer.util.JSONUtil;
+import ph.caleon.transfer.handler.data.TransferRequest;
+import ph.caleon.transfer.util.JSONUtil;
 import io.undertow.server.HttpHandler;
 import io.undertow.server.HttpServerExchange;
 import io.undertow.util.Headers;
-import io.undertow.util.HttpString;
 import io.undertow.util.StatusCodes;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,8 +27,6 @@ public class TransferHandler implements HttpHandler {
         LOGGER.info("Transfer request received. Request: {}", request);
         final TransferRequest transferRequest = JSONUtil.toObject(request, TransferRequest.class);
         LOGGER.info("Request: {}", JSONUtil.toString(transferRequest));
-        final String response = JSONUtil.toString(new TransferResponse("0000", "Successful"));
-        sendResponse(exchange, response, "application/json");
     }
 
     private void processErrorCallback(HttpServerExchange exchange, IOException e) {

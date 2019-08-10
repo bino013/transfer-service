@@ -1,4 +1,4 @@
-package caleon.revolut.transfer.configuration.properties;
+package ph.caleon.transfer.configuration.server;
 
 /**
  * @author arvin.caleon on 2019-08-03

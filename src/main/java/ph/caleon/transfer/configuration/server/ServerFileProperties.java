@@ -1,6 +1,6 @@
-package caleon.revolut.transfer.configuration.properties;
+package ph.caleon.transfer.configuration.server;
 
-import caleon.revolut.transfer.configuration.ApplicationProperties;
+import ph.caleon.transfer.configuration.ApplicationProperties;
 
 /**
  * @author arvin.caleon on 2019-08-03

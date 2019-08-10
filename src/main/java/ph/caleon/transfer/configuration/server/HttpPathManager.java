@@ -1,4 +1,4 @@
-package caleon.revolut.transfer.configuration;
+package ph.caleon.transfer.configuration.server;
 
 import io.undertow.Handlers;
 import io.undertow.server.HttpHandler;

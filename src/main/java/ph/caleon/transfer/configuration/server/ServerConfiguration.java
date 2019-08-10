@@ -1,6 +1,5 @@
-package caleon.revolut.transfer.configuration;
+package ph.caleon.transfer.configuration.server;
 
-import caleon.revolut.transfer.configuration.properties.ServerProperties;
 import io.undertow.Undertow;
 import io.undertow.server.HttpHandler;
 import org.slf4j.Logger;

@@ -1,10 +1,10 @@
-package caleon.revolut.transfer;
+package ph.caleon.transfer;
 
-import caleon.revolut.transfer.configuration.ApplicationProperties;
-import caleon.revolut.transfer.configuration.HttpPathManager;
-import caleon.revolut.transfer.configuration.ServerConfiguration;
-import caleon.revolut.transfer.configuration.properties.ServerFileProperties;
-import caleon.revolut.transfer.handler.TransferHandler;
+import ph.caleon.transfer.configuration.ApplicationProperties;
+import ph.caleon.transfer.configuration.server.HttpPathManager;
+import ph.caleon.transfer.configuration.server.ServerConfiguration;
+import ph.caleon.transfer.configuration.server.ServerFileProperties;
+import ph.caleon.transfer.handler.TransferHandler;
 import io.undertow.util.Methods;
 
 /**
