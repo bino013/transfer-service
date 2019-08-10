@@ -29,12 +29,12 @@
     * A. For Server configuration:
         * Default host: 0.0.0.0
         * Default port: 8080
-    * B. For database it will be running in H2 database. It has sql init script, which runs by the application in every boot-up. The sql script includes DML commands and sample dummy accounts.
+    * B. For database, it will be running in H2. It has sql init script, which runs by the application in every boot-up. The sql script includes DML commands and sample dummy accounts.
     * C. To change the configuration you need to edit the `application.properties` which can be found in `src/main/java/resources`. Here is the list of application configuration that you can change:
         * `server-host` - for http server host, it should be a valid hostname or IP
         * `server-port` - for http server port, it should be unused port
         * `database.url` - for your prefer database url. Example: "jdbc:h2:~/test"
-        * `database.init-db` - boolean value if you want to run the init script of not. Init script should be run at least once.
+        * `database.init-db` - boolean value if you want to run the init script or not. Init script should be run at least once.
         
 ## Transfer API
 * The transfer API is can be use by sending a http request via this path ``/v1/transfer``
