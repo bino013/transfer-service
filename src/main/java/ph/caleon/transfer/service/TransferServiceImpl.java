@@ -12,6 +12,8 @@ import ph.caleon.transfer.handler.data.ResponseCode;
 import ph.caleon.transfer.service.data.TransactionInfo;
 import ph.caleon.transfer.service.data.UpdatedBalance;
 
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import static ph.caleon.transfer.handler.data.ResponseCode.*;
@@ -25,8 +27,10 @@ public class TransferServiceImpl implements TransferService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(TransferServiceImpl.class);
 
-    private static final String CHECK_SRC_BALANCE_QUERY = "SELECT (balance - :amount) AS updated_balance FROM accounts WHERE account_id = :accountId FOR UPDATE";
-    private static final String TGT_UPDATED_BALANCE_QUERY = "SELECT (balance + :amount) AS updated_balance FROM accounts WHERE account_id = :accountId FOR UPDATE";
+    private static final String VALIDATE_ACCTS_QUERY = "SELECT src.account_id, (src.BALANCE - :srcAmount) AS balance " +
+            "FROM ACCOUNTS src WHERE src.account_id = :srcAcctId " +
+            "UNION ALL SELECT tgt.account_id, (tgt.BALANCE + :tgtAmount) AS balance " +
+            "FROM ACCOUNTS tgt WHERE tgt.ACCOUNT_ID = :tgtAcctId FOR UPDATE;";
     private static final String SOURCE_UPDATE_BALANCE_QUERY = "UPDATE accounts set balance = (balance - :amount) WHERE account_id = :accountId";
     private static final String TARGET_UPDATE_BALANCE_QUERY = "UPDATE accounts set balance = (balance + :amount) WHERE account_id = :accountId";
     private static final String INSERT_EVENTS_QUERY = "INSERT INTO money_movement(transaction_id, account_id, amount, currency, is_credit) " +
@@ -42,6 +46,12 @@ public class TransferServiceImpl implements TransferService {
     private static final String STATE_FIELD = "state";
     private static final String RESPONSE_CODE_FIELD = "responseCode";
     private static final String CURRENCY = "currency";
+    private static final String SRC_AMOUNT = "srcAmount";
+    private static final String SRC_ACCT_ID = "srcAcctId";
+    private static final String TGT_AMOUNT = "tgtAmount";
+    private static final String TGT_ACCT_ID = "tgtAcctId";
+    private static final String ACCOUNT_ID = "account_id";
+    private static final String BALANCE = "balance";
 
     private final Jdbi jdbi;
 
@@ -73,18 +83,14 @@ public class TransferServiceImpl implements TransferService {
 
     private UpdatedBalance validateTransaction(final Handle transaction, final TransactionInfo info) {
         LOGGER.info("Validating transaction...");
-        try (final Query srcQuery = transaction.select(CHECK_SRC_BALANCE_QUERY);
-             final Query tgtQuery = transaction.select(TGT_UPDATED_BALANCE_QUERY)){
-            final Optional<Double> srcResult = srcQuery.bind(AMOUNT_FIELD, info.getSourceAmount())
-                    .bind(ACCOUNT_ID_FIELD, info.getSourceAcctId())
-                    .mapTo(Double.class).findOne();
+        try (final Query srcQuery = transaction.select(VALIDATE_ACCTS_QUERY)){
+            final List<Map<String, Object>> maps = srcQuery.bind(SRC_AMOUNT, info.getSourceAmount())
+                    .bind(SRC_ACCT_ID, info.getSourceAcctId())
+                    .bind(TGT_AMOUNT, info.getTargetAmount())
+                    .bind(TGT_ACCT_ID, info.getTargetAcctId())
+                    .mapToMap().list();
 
-            final Optional<Double> tgtResult = tgtQuery.bind(AMOUNT_FIELD, info.getTargetAmount())
-                    .bind(ACCOUNT_ID_FIELD, info.getTargetAcctId())
-                    .mapTo(Double.class).findOne();
-
-            return getUpdatedBalance(srcResult, tgtResult);
-
+            return getUpdatedBalance(info, maps);
         } catch (ServiceException e) {
             insertErrorTransactionState(info, e.getResponseCode());
             throw e;
@@ -94,15 +100,18 @@ public class TransferServiceImpl implements TransferService {
         }
     }
 
-    private UpdatedBalance getUpdatedBalance(Optional<Double> srcResult, Optional<Double> tgtResult) {
-        final UpdatedBalance balance = new UpdatedBalance();
-        if (srcResult.isPresent() && tgtResult.isPresent()) {
-            balance.setSourceUpdatedBalance(srcResult.get());
-            balance.setTargetUpdatedBalance(tgtResult.get());
-        } else {
+    private UpdatedBalance getUpdatedBalance(TransactionInfo info, List<Map<String, Object>> maps) {
+        if (maps.size() != 2) {
             throw new ServiceException(INVALID_ACCOUNT);
+        } else {
+            UpdatedBalance updatedBalance = new UpdatedBalance(info.getSourceAcctId(), info.getTargetAcctId());
+            for (Map<String, Object> mapValue : maps) {
+                final Long account_id = (Long) mapValue.get(ACCOUNT_ID);
+                final Double balance = (Double) mapValue.get(BALANCE);
+                updatedBalance.updatedBalance(account_id, balance);
+            }
+            return updatedBalance;
         }
-        return balance;
     }
 
     private void updateBalances(final Handle transaction, final TransactionInfo info) {

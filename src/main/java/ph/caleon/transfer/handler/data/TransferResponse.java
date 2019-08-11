@@ -1,5 +1,6 @@
 package ph.caleon.transfer.handler.data;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -20,9 +21,10 @@ public class TransferResponse {
 
     private String transactionId;
 
-    private UpdatedBalance updatedBalance;
+    @JsonInclude(value = JsonInclude.Include.NON_NULL)
+    private Balance updatedBalance;
 
-    public TransferResponse(final ResponseCode code, final String transactionId, final UpdatedBalance updatedBalance) {
+    public TransferResponse(final ResponseCode code, final String transactionId, final Balance updatedBalance) {
         this(code);
         this.transactionId = transactionId;
         this.updatedBalance = updatedBalance;

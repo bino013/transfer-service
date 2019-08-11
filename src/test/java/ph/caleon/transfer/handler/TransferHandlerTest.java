@@ -146,6 +146,19 @@ public class TransferHandlerTest extends BaseTest {
         assertFalse(transferResponse.getMessage().isEmpty());
     }
 
+    @Test
+    public void testTransferApi_transferToSameAcct() {
+        TransferRequest request = new TransferRequest(SOURCE_ACCT_ID, SOURCE_ACCT_ID, TXN_AMOUNT, CURRENCY);
+        final String requestStr = JSONUtil.toString(request);
+        final Response response = callTransferApi(requestStr);
+        final TransferResponse transferResponse = JSONUtil.toObject(response.asString(), TransferResponse.class);
+        assertEquals(StatusCodes.OK, response.statusCode());
+        assertNull(transferResponse.getUpdatedBalance());
+        assertEquals(REQUEST_VALIDATION_ERROR.getCode(), transferResponse.getCode());
+        assertFalse(transferResponse.getMessage().isEmpty());
+        assertFalse(transferResponse.getMessage().isEmpty());
+    }
+
     private Response callTransferApi(String request) {
         return given()
                     .contentType(ContentType.JSON)

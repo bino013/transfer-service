@@ -7,6 +7,7 @@ import io.undertow.util.StatusCodes;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ph.caleon.transfer.exeception.TransferException;
+import ph.caleon.transfer.handler.data.Balance;
 import ph.caleon.transfer.handler.data.TransferRequest;
 import ph.caleon.transfer.handler.data.TransferResponse;
 import ph.caleon.transfer.service.TransferService;
@@ -46,8 +47,9 @@ public class TransferHandler implements HttpHandler {
         String response = null;
         try {
             TransferRequest transferRequest = validateRequest(request);
-            final UpdatedBalance updatedBalance = service.transfer(new TransactionInfo(transferRequest, transactionId));
-            response = JSONUtil.toString(new TransferResponse(SUCCESSFUL, transactionId, updatedBalance));
+            Balance balance = new Balance(transferRequest);
+            balance.setUpdatedBalances(service.transfer(new TransactionInfo(transferRequest, transactionId)));
+            response = JSONUtil.toString(new TransferResponse(SUCCESSFUL, transactionId, balance));
         } catch (TransferException e) {
             response = JSONUtil.toString(new TransferResponse(e.getResponseCode().getCode(), e.getMessage(), transactionId));
             LOGGER.error("Error occurred while processing transfer request", e);
@@ -63,7 +65,9 @@ public class TransferHandler implements HttpHandler {
             final TransferRequest transferRequest = JSONUtil.toObject(request, TransferRequest.class);
             if (Objects.isNull(transferRequest.getSourceAcctId()) || Objects.isNull(transferRequest.getTargetAcctId())
                     || Objects.isNull(transferRequest.getAmount()) || Objects.isNull(transferRequest.getCurrency())) {
-                throw new TransferException("Source account id, target account Id, amount and currency are required fields", REQUEST_VALIDATION_ERROR);
+                throw new TransferException("`source_acct_id`, `target_acct_id`, `amount` and `currency` are required fields", REQUEST_VALIDATION_ERROR);
+            } else if (transferRequest.getSourceAcctId().equals(transferRequest.getTargetAcctId())) {
+                throw new TransferException("You cannot transfer to the same account", REQUEST_VALIDATION_ERROR);
             }
             return transferRequest;
         } catch (TransferException e) {

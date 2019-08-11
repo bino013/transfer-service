@@ -38,8 +38,8 @@ public class TransferServiceTest extends BaseTest {
         TransferRequest request = new TransferRequest(SOURCE_ACCT_ID, TARGET_ACCT_ID, TXN_AMOUNT, CURRENCY);
         final TransactionInfo info = new TransactionInfo(request);
         final UpdatedBalance updatedBalance = transferService.transfer(info);
-        assertEquals(INITIAL_BALANCE - TXN_AMOUNT, updatedBalance.getSourceUpdatedBalance());
-        assertEquals(INITIAL_BALANCE + TXN_AMOUNT, updatedBalance.getTargetUpdatedBalance());
+        assertEquals(INITIAL_BALANCE - TXN_AMOUNT, updatedBalance.getBalance(SOURCE_ACCT_ID));
+        assertEquals(INITIAL_BALANCE + TXN_AMOUNT, updatedBalance.getBalance(TARGET_ACCT_ID));
         assertAcctTable(INITIAL_BALANCE - TXN_AMOUNT, SOURCE_ACCT_ID);
         assertAcctTable(INITIAL_BALANCE + TXN_AMOUNT, TARGET_ACCT_ID);
         assertTransactionStateTable(info, SUCCESSFUL.getCode(), POSTED.name());
