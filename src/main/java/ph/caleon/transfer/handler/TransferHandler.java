@@ -83,6 +83,7 @@ public class TransferHandler implements HttpHandler {
     }
 
     private static void sendResponse(HttpServerExchange exchange, String response) {
+        LOGGER.info("Response: {}", response );
         exchange.setStatusCode(StatusCodes.OK);
         exchange.getResponseHeaders().put(Headers.CONTENT_TYPE, APPLICATION_JSON);
         exchange.getResponseSender().send(response);

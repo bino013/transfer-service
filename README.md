@@ -64,6 +64,12 @@
         }
     }
     ```
+    
+    ##### List of account_id in the database upon boot-up
+    * 100001
+    * 100002
+    * 100003
+    * 100004
   
     ##### Sample Error Response Body
     ```
@@ -80,6 +86,16 @@
      * `updated_balance` - updated balances
         * `source_updated_balance` - updated source balance
         * `target_updated_balance` - updated source balance
+     
+     * Note: All http requests that have been processed by the service will have `200` as HTTP status. This is part of the security from the hackers. I have included an `code` field in the response body to know if the request has been successfully processed or not. 
+     
+     ##### Error codes
+     * `0000` - Success response
+     * `9600` - Generic error response, might be null pointer or other exception
+     * `9601` - Request body validation error. Includes mandatory parameter checking and request body parsing error
+     * `9602` - Transfer error. This included the database and sql error
+     * `5100` - Insufficient funds error.
+     * `0500` - Invalid account. Account is not existing in the database
 
 ## Database Schema
 * I design a simple schema that will support a simple transfer transaction, but still extendable to support a more complicated transfer transaction e.i transfer with fees and commissions. The schema also has a double entry ledger in the form of the `money_movement` table.
