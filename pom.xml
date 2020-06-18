@@ -16,7 +16,7 @@
         <undertow.version>2.0.23.Final</undertow.version>
         <jdbi-core.version>3.9.1</jdbi-core.version>
         <h2.version>1.4.199</h2.version>
-        <jackson-databind.version>2.9.9.2</jackson-databind.version>
+        <jackson-databind.version>2.10.0.pr1</jackson-databind.version>
         <lombok.version>1.18.8</lombok.version>
         <junit.version>4.12</junit.version>
         <rest-assured.version>4.0.0</rest-assured.version>
