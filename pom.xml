@@ -18,7 +18,7 @@
         <h2.version>1.4.199</h2.version>
         <jackson-databind.version>2.9.9.2</jackson-databind.version>
         <lombok.version>1.18.8</lombok.version>
-        <junit.version>4.12</junit.version>
+        <junit.version>4.13.1</junit.version>
         <rest-assured.version>4.0.0</rest-assured.version>
         <hsqldb.version>2.5.0</hsqldb.version>
     </properties>
